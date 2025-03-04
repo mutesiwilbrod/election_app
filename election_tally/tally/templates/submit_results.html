@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Enter Election Results</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .form-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        .form-title { color: #007bff; margin-bottom: 20px; }
+        .submit-btn { background-color: #28a745; border: none; }
+        .submit-btn:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="form-container">
+        <h2 class="form-title text-center">Enter Election Results</h2>
+        <form id="resultsForm" method="post" action="{% url 'submit_results' %}">
+            {% csrf_token %}
+            
+            <!-- Election Position Dropdown -->
+            <div class="mb-3">
+                <label for="electionPosition" class="form-label">Election Position</label>
+                <select class="form-select" id="electionPosition" name="election_position" required>
+                    <option value="" disabled selected>Select a position</option>
+                    {% for position in election_positions %}
+                        <option value="{{ position.id }}">{{ position.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Subcounty Dropdown -->
+            <div class="mb-3">
+                <label for="subcounty" class="form-label">Subcounty</label>
+                <select class="form-select" id="subcounty" name="subcounty" required>
+                    <option value="" disabled selected>Select a subcounty</option>
+                    {% for subcounty in subcounties %}
+                        <!-- Use subcounty.name as the value -->
+                        <option value="{{ subcounty.name }}">{{ subcounty.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Polling Station Dropdown -->
+            <div class="mb-3">
+                <label for="pollingStation" class="form-label">Polling Station</label>
+                <select class="form-select" id="pollingStation" name="polling_station" required>
+                    <option value="" disabled selected>Select a polling station</option>
+                    <!-- Populated via AJAX -->
+                </select>
+            </div>
+            
+            <!-- Candidate Results Table -->
+            <div class="mb-3">
+                <h5>Candidates and Votes</h5>
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Candidate</th>
+                            <th>Votes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="candidatesTable">
+                        <!-- Populated via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-success submit-btn">Submit Results</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // When the election position changes, fetch candidates for that position.
+    $('#electionPosition').on('change', function() {
+        var positionId = $(this).val();
+        $.ajax({
+            url: '/api/get_candidates/',
+            data: {'position_id': positionId},
+            dataType: 'json',
+            success: function(data) {
+                $('#candidatesTable').empty();
+                $.each(data, function(index, candidate) {
+                    var row = '<tr>' +
+                              '<td>' + candidate.name +
+                              '<input type="hidden" name="candidate_ids[]" value="' + candidate.id + '"></td>' +
+                              '<td><input type="number" name="votes_' + candidate.id + '" class="form-control" min="0" required></td>' +
+                              '</tr>';
+                    $('#candidatesTable').append(row);
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching candidates:", error);
+            }
+        });
+    });
+    
+    // When subcounty is selected, fetch polling stations.
+    $('#subcounty').on('change', function() {
+        var subcountyName = $(this).val();
+        $.ajax({
+            url: '/api/get_polling_stations/',
+            data: {'subcounty_id': subcountyName},
+            dataType: 'json',
+            success: function(data) {
+                $('#pollingStation').empty();
+                $('#pollingStation').append('<option value="" disabled selected>Select a polling station</option>');
+                $.each(data, function(index, station) {
+                    $('#pollingStation').append('<option value="' + station.id + '">' + station.name + '</option>');
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching polling stations:", error);
+            }
+        });
+    });
+</script>
+</body>
+</html>

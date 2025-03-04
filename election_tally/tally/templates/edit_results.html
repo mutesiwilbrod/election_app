@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Election Results</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .form-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        .form-title { color: #007bff; margin-bottom: 20px; }
+        .submit-btn { background-color: #28a745; border: none; }
+        .submit-btn:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="form-container">
+        <h2 class="form-title text-center">Edit Election Results</h2>
+        <p class="text-center text-danger">Results for this polling station have already been entered. You can only edit them.</p>
+        <form method="post" action="{% url 'edit_results' %}">
+            {% csrf_token %}
+            <!-- Hidden field for polling station -->
+            <input type="hidden" name="polling_station" value="{{ polling_station.id }}">
+            
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Candidate</th>
+                        <th>Votes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for candidate in candidates_results %}
+                    <tr>
+                        <td>
+                            {{ candidate.candidate_name }}
+                            <input type="hidden" name="candidate_ids[]" value="{{ candidate.candidate_id }}">
+                        </td>
+                        <td>
+                            <input type="number" name="votes_{{ candidate.candidate_id }}" class="form-control" value="{{ candidate.votes }}" min="0" required>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="text-center">
+                <button type="submit" class="btn btn-success submit-btn">Update Results</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
