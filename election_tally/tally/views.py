@@ -39,7 +39,13 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
-
+@login_required
+def home_view(request):
+    return render(request, "home.html")
+@login_required
+def analytics_view(request):
+    # This is a stub for your analytics page.
+    return render(request, "analytics.html")
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -96,7 +102,7 @@ def login_view(request):
         if user is not None:
             print("Login successful for:", username)
             login(request, user)
-            next_url = request.GET.get('next') or '/dashboard/'
+            next_url = request.GET.get('next') or '/'
             print("Redirecting to:", next_url)
             return redirect(next_url)
         else:
