@@ -18,6 +18,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from io import BytesIO
 import base64
+from django.db.models import Sum
+from django.utils import timezone
+from datetime import timedelta
+
+from .models import Result, ElectionPosition, PollingStation, User
 # tally/views.py
 import json
 
@@ -100,14 +105,6 @@ def login_view(request):
     return render(request, "login.html")
 
 # tally/views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from django.utils import timezone
-from datetime import timedelta
-
-from .models import Result, ElectionPosition, PollingStation, User
-
 @login_required
 def dashboard_view(request):
     # Ensure only superusers can view this dashboard
